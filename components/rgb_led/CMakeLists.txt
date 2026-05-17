@@ -1,0 +1,10 @@
+idf_component_register(
+    SRCS
+        "rgb_led.c"
+        "led_strip/src/led_strip_rmt_ws2812.c"
+    INCLUDE_DIRS
+        "include"
+        "led_strip/include"
+    PRIV_REQUIRES
+        esp_driver_rmt
+)
