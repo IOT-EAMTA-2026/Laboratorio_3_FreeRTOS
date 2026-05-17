@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # macOS
 .DS_Store
 .AppleDouble
@@ -76,3 +77,12 @@ Desktop.ini
 *.workspace # General workspace files, can be from various tools
 *.suo       # Visual Studio Solution User Options
 *.sln.docstates # Visual Studio
+=======
+﻿# Build and project files
+build/
+sdkconfig
+sdkconfig.old
+.env
+.vscode/
+*.log
+>>>>>>> bf949327e613b6b869fe1d1ee1d7cd7ceff4f312

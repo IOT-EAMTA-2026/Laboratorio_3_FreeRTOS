@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # For more information about build system see
 # https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html
 # The following five lines of boilerplate have to be in your project's
@@ -8,3 +9,9 @@ include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 # "Trim" the build. Include the minimal set of components, main, and anything it depends on.
 idf_build_set_property(MINIMAL_BUILD ON)
 project(softap_sta)
+=======
+﻿cmake_minimum_required(VERSION 3.5)
+
+include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+project(Laboratorio_3_FreeRTOS)
+>>>>>>> bf949327e613b6b869fe1d1ee1d7cd7ceff4f312

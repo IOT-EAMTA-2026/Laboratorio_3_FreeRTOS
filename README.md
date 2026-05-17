@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 | Supported Targets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-C5 | ESP32-C6 | ESP32-C61 | ESP32-S2 | ESP32-S3 | ESP32-P4 | ESP32-H2 |
 | ----------------- | ----- | -------- | -------- | -------- | -------- | --------- | -------- | -------- | -------- | -------- |
 
@@ -72,3 +73,22 @@ This example can run on ESP Chips without Wi-Fi using ESP-Hosted. See the [Two-C
 ## Troubleshooting
 
 For any technical queries, please open an [issue](https://github.com/espressif/esp-idf/issues) on GitHub. We will get back to you soon.
+=======
+﻿# Laboratorio_3_FreeRTOS - ESP32 template
+
+Proyecto mínimo para ESP32 usando ESP-IDF.
+
+Instrucciones rápidas:
+1. Instalar ESP-IDF (https://docs.espressif.com)
+2. En el directorio del repo:
+   idf.py set-target esp32
+   idf.py build
+   idf.py -p <PORT> flash
+
+Archivos añadidos:
+- main/main.c  (blink demo usando FreeRTOS driver/gpio)
+- CMakeLists.txt
+- main/CMakeLists.txt
+
+Solicita adaptar a una placa concreta si quieres (por ejemplo elegir otro pin, configuraciones adicionales o usar PlatformIO).
+>>>>>>> bf949327e613b6b869fe1d1ee1d7cd7ceff4f312
