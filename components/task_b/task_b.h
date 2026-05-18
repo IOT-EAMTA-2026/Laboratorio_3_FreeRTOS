@@ -2,9 +2,6 @@
 #define TASK_B
 
 // Declaramos la función de la tarea que usará FreeRTOS
-void tarea_motores(void *pvParameters);
-
-
-
+void echo_task(void *arg);
 
 #endif 
