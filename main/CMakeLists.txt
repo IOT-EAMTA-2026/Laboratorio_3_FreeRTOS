@@ -1,7 +1,7 @@
 idf_component_register(
     SRCS "app_main.c"
-    PRIV_REQUIRES cjson rgb_led task_b delay 
-    INCLUDE_DIRS "."
-    REQUIRES freertos driver esp_log
+    PRIV_REQUIRES rgb_led task_b delay task_c
+    INCLUDE_DIRS "." "../components"
+    REQUIRES freertos driver 
     EMBED_FILES
 )
