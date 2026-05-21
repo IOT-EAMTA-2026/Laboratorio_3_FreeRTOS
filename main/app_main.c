@@ -1,70 +1,104 @@
 #include <stdio.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
+#include "freertos/semphr.h"
+
 #include "esp_log.h"
+#include "esp_err.h"
+
+#include "rgb_led.h"
+
 #include "shared_types.h"
+#include "task_a.h"
+#include "task_b.h"
+#include "task_c.h"
 
-// Declaración externa de tu tarea de la terminal (TASK B)
-extern void echo_task(void *arg);
+/*
+   esp_log.h permite usar:
+ * ESP_LOGI = mensaje informativo.
+ * ESP_LOGW = warning, algo raro pero no fatal.
+ * ESP_LOGE = error importante.
+*/
 
-static const char *MAIN_TAG = "MAIN_APP";
+static const char *TAG = "MAIN";
 
 #define QUEUE_LENGTH 10
 
-// --- TASK C (Simulada para pruebas de Hardware / LEDs) ---
-void led_processor_task_C(void *pvParameters) {
-    // Recuperamos el handle de la cola pasado desde el main
-    QueueHandle_t xQueue = (QueueHandle_t)pvParameters;
-    led_command_t comando;
-
-    if (xQueue == NULL) {
-        ESP_LOGE(MAIN_TAG, "[TASK C] Error: Cola inválida recibida.");
-        vTaskDelete(NULL);
-    }
-
-    ESP_LOGI(MAIN_TAG, "[TASK C] Iniciada. Esperando comandos de la cola...");
-
-    while (1) {
-        // Bloqueo perpetuo hasta que entre un dato desde la TASK B
-        if (xQueueReceive(xQueue, &comando, portMAX_DELAY) == pdTRUE) {
-            ESP_LOGW(MAIN_TAG, "[TASK C] ¡Comando Recibido desde la cola!");
-            ESP_LOGI(MAIN_TAG, "[TASK C] -> R:%d G:%d B:%d durante %d segundos.",
-                     comando.color.r, comando.color.g, comando.color.b, comando.delay_s);
-            
-            // Aquí irá en el futuro tu lógica real para encender los LEDs físicos
-        }
-    }
-}
-
-// --- CONFIGURACIÓN PRINCIPAL ---
 void app_main(void)
 {
-    esp_log_level_set("*", ESP_LOG_INFO);
-    ESP_LOGI(MAIN_TAG, "Inicializando aplicación...");
+    ESP_LOGI(TAG, "Iniciando Laboratorio 3 - FreeRTOS");
 
-    // 1. Crear la cola de comandos con longitud 10 según requerimiento 5.3
-    QueueHandle_t main_led_queue = xQueueCreate(QUEUE_LENGTH, sizeof(led_command_t));
+    /*
+     * Color inicial.
+     * TASK A va a parpadear inicialmente en rojo.
+     */
+    g_current_color.r = 255;
+    g_current_color.g = 0;
+    g_current_color.b = 0;
 
-    // Verificar que la memoria de la cola se asignó correctamente
-    if (main_led_queue == NULL) {
-        ESP_LOGE(MAIN_TAG, "Error crítico: No se pudo crear la cola de comandos.");
-        return; 
+    /*
+     * Cantidad inicial de timers pendientes.
+     */
+    g_pending_timers = 0;
+
+    /*
+     * Mutex que protege el color global (g_current_color).
+     */
+    g_color_mutex = xSemaphoreCreateMutex();
+
+    if (g_color_mutex == NULL) {
+        ESP_LOGE(TAG, "No se pudo crear el mutex del color");
+        return;
     }
 
-    // 2. Crear TASK B (Terminal UART) pasando el handle de la cola como parámetro (último argumento)
-    xTaskCreate(echo_task, 
-                "uart_echo_task", 
-                4096, 
-                (void *)main_led_queue, // <--- Inyección de la cola
-                10, 
-                NULL);
+    /*
+     * Inicialización del LED RGB.
+     * La librería rgb_led guarda internamente el puntero al LED.
+     */
+    rgb_led_init();
 
-    // 3. Crear TASK C (Procesador LED de prueba) pasando el mismo handle de la cola
-    xTaskCreate(led_processor_task_C, 
-                "led_task_c", 
-                2048, 
-                (void *)main_led_queue, // <--- Inyección de la misma cola
-                9, 
-                NULL);
+    ESP_LOGI(TAG, "LED RGB inicializado");
+
+    /*
+     * TASK A: menor prioridad.
+     * TASK C: prioridad intermedia.
+     * TASK B: mayor prioridad.
+     */
+    BaseType_t task_created; // dijimos que es un tipo base de FreeRTOS que sustituye nuestro int 32 o int 16 segun el micro.
+    /*
+     * xTaskCreate() crea una tarea.
+     *
+     * Parámetros:
+     * 1) task_a: función que ejecuta la tarea.
+     * 2) "task_a": nombre de la tarea para el debug.
+     * 3) 4096: stack asignado a la tarea.
+     * 4) NULL: parámetro que recibe la tarea. En este caso nada.
+     * 5) tskIDLE_PRIORITY + 1: prioridad baja.
+     * 6) NULL: handle de la tarea. Aca no se necesita.
+     *
+     * tskIDLE_PRIORITY es la prioridad mínima del sistema que de default limpia la memoria de las tareas borradas.
+     * Al poner +1, TASK A queda apenas arriba de la tarea idle.
+     */
+
+    /*
+ * TASK A: menor prioridad.
+ */
+
+    task_created = xTaskCreate(
+        task_a,
+        "task_a",
+        4096,
+        NULL,
+        tskIDLE_PRIORITY + 1,
+        NULL
+    );
+
+    if (task_created != pdPASS) {
+        ESP_LOGE(TAG, "No se pudo crear TASK A");
+        return;
+    }
+
+    ESP_LOGI(TAG, "Todas las tareas fueron creadas correctamente");
 }
