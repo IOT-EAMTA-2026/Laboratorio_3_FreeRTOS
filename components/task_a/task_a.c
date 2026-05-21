@@ -31,7 +31,7 @@ void task_a(void *pvParameters)
             xSemaphoreGive(g_color_mutex);
         } else {
             ESP_LOGW(TAG, "No se pudo tomar el mutex");
-            continue;
+           continue;//vuelve al inicio del while(1)
         }
 
         rgb_led_set_color(local_color.r, local_color.g, local_color.b);
