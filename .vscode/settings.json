@@ -4,5 +4,6 @@
     "--background-index",
     "--query-driver=**",
     "--compile-commands-dir=c:\\Users\\bruno\\OneDrive\\Desktop\\iot_lab_3\\Laboratorio_3_FreeRTOS\\build"
-  ]
+  ],
+  "idf.currentSetup": "C:\\esp\\v6.0\\esp-idf"
 }
