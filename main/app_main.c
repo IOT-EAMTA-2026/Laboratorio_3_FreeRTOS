@@ -112,7 +112,7 @@ void app_main(void)
         "task_b",
         4096,
         (void *)led_queue,
-        10,
+        tskIDLE_PRIORITY + 3,
         NULL
     );  
 
@@ -127,7 +127,7 @@ void app_main(void)
         "led_task",
         4096,
         (void *)led_queue,
-        10,
+        tskIDLE_PRIORITY + 2,
         NULL
     );
 
