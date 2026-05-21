@@ -1,3 +1,3 @@
 idf_component_register(SRCS "task_b.c"
-                    REQUIRES esp_driver_uart esp_driver_gpio
-                    INCLUDE_DIRS "." ".." "../components/shared_types/include")
+                    REQUIRES esp_driver_uart esp_driver_gpio shared_types
+                    INCLUDE_DIRS "." ".." "../shared_types/include")
