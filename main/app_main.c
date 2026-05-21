@@ -5,7 +5,6 @@
 #include "esp_log.h"
 #include "shared_types.h"
 
-// Declaración externa de tu tarea de la terminal (TASK B)
 extern void echo_task(void *arg);
 extern void task_c(void *pvParameters);
 
@@ -13,7 +12,7 @@ static const char *MAIN_TAG = "MAIN_APP";
 
 #define QUEUE_LENGTH 10
 
-// Variables globales compartidas (se usan en task c)
+// Variables globales compartidas
 QueueHandle_t led_queue;
 SemaphoreHandle_t led_mutex;
 rgb_color_t current_color = {0, 0, 0};

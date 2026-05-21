@@ -23,8 +23,6 @@ static const char *TAG = "UART_terminal";
 
 void echo_task(void *arg)
 {
-    QueueHandle_t led_cmd_queue = (QueueHandle_t)arg;
-
     uart_config_t uart_config = {
         .baud_rate = ECHO_UART_BAUD_RATE,
         .data_bits = UART_DATA_8_BITS,
@@ -38,9 +36,6 @@ void echo_task(void *arg)
     ESP_ERROR_CHECK(uart_driver_install(ECHO_UART_PORT_NUM, BUF_SIZE * 2, 0, 0, NULL, 0));
     ESP_ERROR_CHECK(uart_param_config(ECHO_UART_PORT_NUM, &uart_config));
     ESP_ERROR_CHECK(uart_set_pin(ECHO_UART_PORT_NUM, ECHO_TEST_TXD, ECHO_TEST_RXD, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
-
-    // Inicializamos solo la cola de salida hacia tus LEDs
-    led_cmd_queue = xQueueCreate(5, sizeof(led_command_t)); 
 
     uint8_t line_buffer[BUF_SIZE];
     int line_index = 0;
@@ -98,7 +93,7 @@ void echo_task(void *arg)
                                  led_cmd.color.r, led_cmd.color.g, led_cmd.color.b, led_cmd.delay_s);
 
                         // Enviamos la estructura directo a la cola global de hardware
-                        xQueueSend(led_cmd_queue, &led_cmd, portMAX_DELAY);
+                        xQueueSend(led_queue, &led_cmd, portMAX_DELAY);
                     }
 
                     // Reiniciamos el índice del búfer para la próxima línea
