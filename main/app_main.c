@@ -57,7 +57,7 @@ void app_main(void)
     g_color_mutex = xSemaphoreCreateMutex();
 
     if (g_color_mutex == NULL) {
-        ESP_LOGE(TAG, "No se pudo crear el mutex del color");
+        ESP_LOGE(MAIN_TAG, "No se pudo crear el mutex del color");
         return;
     }
 
@@ -66,7 +66,7 @@ void app_main(void)
      */
     rgb_led_init();
 
-    ESP_LOGI(TAG, "LED RGB inicializado");
+    ESP_LOGI(MAIN_TAG, "LED RGB inicializado");
     /*
      * TASK A: menor prioridad.
      * TASK C: prioridad intermedia.
@@ -102,7 +102,7 @@ void app_main(void)
     );
 
     if (task_created != pdPASS) {
-        ESP_LOGE(TAG, "No se pudo crear TASK A");
+        ESP_LOGE(MAIN_TAG, "No se pudo crear TASK A");
         return;
     }
 
@@ -118,7 +118,7 @@ void app_main(void)
     );
 
     if (task_created != pdPASS) {
-        ESP_LOGE(TAG, "No se pudo crear TASK B");
+        ESP_LOGE(MAIN_TAG, "No se pudo crear TASK B");
         return;
     }
 
@@ -133,8 +133,8 @@ void app_main(void)
     );
 
     if (task_created != pdPASS) {
-        ESP_LOGE(TAG, "No se pudo crear TASK C");
+        ESP_LOGE(MAIN_TAG, "No se pudo crear TASK C");
         return;
     }
-    ESP_LOGI(TAG, "Todas las tareas fueron creadas correctamente");
+    ESP_LOGI(MAIN_TAG, "Todas las tareas fueron creadas correctamente");
 }
