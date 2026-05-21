@@ -21,7 +21,7 @@
 
 static const char *TAG = "UART_terminal";
 
-void echo_task(void *arg)
+void task_b(void *arg)
 {
     QueueHandle_t led_cmd_queue = (QueueHandle_t)arg;
 
