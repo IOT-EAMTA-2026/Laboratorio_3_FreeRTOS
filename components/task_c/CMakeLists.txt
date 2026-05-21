@@ -1,5 +1,5 @@
 idf_component_register(
-    SRCS
+    SRCS "task_c.c"
     INCLUDE_DIRS "." ".."
     REQUIRES freertos log
 )

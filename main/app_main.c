@@ -4,6 +4,11 @@
 #include "freertos/queue.h"
 #include "esp_log.h"
 #include "shared_types.h"
+#include "rgb_led.h"
+#include "task_b.h"
+#include "task_c.h"
+#include "task_a.h"
+
 /*
    esp_log.h permite usar:
  * ESP_LOGI = mensaje informativo.
@@ -11,9 +16,6 @@
  * ESP_LOGE = error importante.
 */
 
-// Declaración externa de tu tarea de la terminal (TASK B)
-extern void task_b(void *arg);
-extern void task_c(void *pvParameters);
 
 static const char *MAIN_TAG = "MAIN_APP";
 

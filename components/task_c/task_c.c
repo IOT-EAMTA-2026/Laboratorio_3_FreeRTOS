@@ -7,8 +7,8 @@
 
 // variables declaradas en main
 extern QueueHandle_t led_queue;
-extern SemaphoreHandle_t led_mutex;
-extern rgb_color_t current_color;
+extern SemaphoreHandle_t g_color_mutex;
+extern rgb_color_t g_current_color;
 
 // Callback del timer one-shot
 static void timer_callback(TimerHandle_t xTimer)
@@ -17,9 +17,9 @@ static void timer_callback(TimerHandle_t xTimer)
     rgb_color_t *color = (rgb_color_t *) pvTimerGetTimerID(xTimer);
 
     // Tomar el mutex y actualizar el color compartido
-    if (xSemaphoreTake(led_mutex, portMAX_DELAY) == pdTRUE) {
-        current_color = *color;
-        xSemaphoreGive(led_mutex);
+    if (xSemaphoreTake(g_color_mutex, portMAX_DELAY) == pdTRUE) {
+        g_current_color = *color;
+        xSemaphoreGive(g_color_mutex);
     }
 
     // Liberar la memoria dinámica
