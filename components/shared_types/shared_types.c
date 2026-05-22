@@ -8,4 +8,6 @@ rgb_color_t g_current_color = {
 
 SemaphoreHandle_t g_color_mutex = NULL;
 
+QueueHandle_t led_queue = NULL;
+
 volatile uint32_t g_pending_timers = 0;

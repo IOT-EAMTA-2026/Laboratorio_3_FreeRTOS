@@ -13,17 +13,20 @@
 #include "task_b.h"
 
 // --- CONFIGURACIONES ---
-#define ECHO_TEST_TXD           (CONFIG_EXAMPLE_UART_TXD)
-#define ECHO_TEST_RXD           (CONFIG_EXAMPLE_UART_RXD)
-#define ECHO_UART_PORT_NUM      (CONFIG_EXAMPLE_UART_PORT_NUM)
-#define ECHO_UART_BAUD_RATE     (CONFIG_EXAMPLE_UART_BAUD_RATE)
-#define BUF_SIZE                (1024)
+#define ECHO_UART_PORT_NUM      UART_NUM_0
+#define ECHO_UART_BAUD_RATE     115200
+#define BUF_SIZE                1024
 
 static const char *TAG = "UART_terminal";
 
-void echo_task(void *arg)
+void task_b(void *arg)
 {
     QueueHandle_t led_cmd_queue = (QueueHandle_t)arg;
+
+    if (led_cmd_queue == NULL) {
+        ESP_LOGE(TAG, "No se recibio la cola de comandos");
+        vTaskDelete(NULL);
+    }
 
     uart_config_t uart_config = {
         .baud_rate = ECHO_UART_BAUD_RATE,
@@ -34,20 +37,22 @@ void echo_task(void *arg)
         .source_clk = UART_SCLK_DEFAULT,
     };
 
-    // Usamos '0' en vez de intr_alloc_flags para evitar errores si no está definido
     ESP_ERROR_CHECK(uart_driver_install(ECHO_UART_PORT_NUM, BUF_SIZE * 2, 0, 0, NULL, 0));
     ESP_ERROR_CHECK(uart_param_config(ECHO_UART_PORT_NUM, &uart_config));
-    ESP_ERROR_CHECK(uart_set_pin(ECHO_UART_PORT_NUM, ECHO_TEST_TXD, ECHO_TEST_RXD, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
 
-    // Inicializamos solo la cola de salida hacia tus LEDs
-    led_cmd_queue = xQueueCreate(5, sizeof(led_command_t)); 
+    ESP_ERROR_CHECK(uart_set_pin(
+        ECHO_UART_PORT_NUM,
+        UART_PIN_NO_CHANGE,
+        UART_PIN_NO_CHANGE,
+        UART_PIN_NO_CHANGE,
+        UART_PIN_NO_CHANGE
+    ));
 
     uint8_t line_buffer[BUF_SIZE];
     int line_index = 0;
     led_command_t led_cmd;
 
     ESP_LOGI(TAG, "Terminal lista. Escribe un COLOR<espacio>SEGUNDOS y presiona ENTER...");
-
     while (1) {
         uint8_t byte_recibido;
         int len = uart_read_bytes(ECHO_UART_PORT_NUM, &byte_recibido, 1, pdMS_TO_TICKS(10));
@@ -78,12 +83,56 @@ void echo_task(void *arg)
                     char *color_str = (char *)line_buffer;
                     bool color_valido = true;
 
-                    if (strcmp(color_str, "ROJO") == 0) {   
+                    if (strcmp(color_str, "ROJO") == 0) {
                         led_cmd.color.r = 255;
+                        led_cmd.color.g = 0;
+                        led_cmd.color.b = 0;
+
                     } else if (strcmp(color_str, "VERDE") == 0) {
+                        led_cmd.color.r = 0;
                         led_cmd.color.g = 255;
+                        led_cmd.color.b = 0;
+
                     } else if (strcmp(color_str, "AZUL") == 0) {
+                        led_cmd.color.r = 0;
+                        led_cmd.color.g = 0;
                         led_cmd.color.b = 255;
+
+                    } else if (strcmp(color_str, "BLANCO") == 0) {
+                        led_cmd.color.r = 255;
+                        led_cmd.color.g = 255;
+                        led_cmd.color.b = 255;
+
+                    } else if (strcmp(color_str, "AMARILLO") == 0) {
+                        led_cmd.color.r = 255;
+                        led_cmd.color.g = 255;
+                        led_cmd.color.b = 0;
+
+                    } else if (strcmp(color_str, "CYAN") == 0) {
+                        led_cmd.color.r = 0;
+                        led_cmd.color.g = 255;
+                        led_cmd.color.b = 255;
+
+                    } else if (strcmp(color_str, "MAGENTA") == 0) {
+                        led_cmd.color.r = 255;
+                        led_cmd.color.g = 0;
+                        led_cmd.color.b = 255;
+
+                    } else if (strcmp(color_str, "NARANJA") == 0) {
+                        led_cmd.color.r = 255;
+                        led_cmd.color.g = 80;
+                        led_cmd.color.b = 0;
+
+                    } else if (strcmp(color_str, "VIOLETA") == 0) {
+                        led_cmd.color.r = 128;
+                        led_cmd.color.g = 0;
+                        led_cmd.color.b = 255;
+
+                    } else if (strcmp(color_str, "APAGADO") == 0) {
+                        led_cmd.color.r = 0;
+                        led_cmd.color.g = 0;
+                        led_cmd.color.b = 0;
+
                     } else {
                         ESP_LOGW(TAG, "Color desconocido: %s", color_str);
                         color_valido = false;

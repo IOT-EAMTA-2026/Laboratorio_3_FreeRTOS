@@ -50,6 +50,6 @@ extern volatile uint32_t g_pending_timers;
 
 /**cola
  * */
-QueueHandle_t led_queue;
+extern QueueHandle_t led_queue;
 
 #endif

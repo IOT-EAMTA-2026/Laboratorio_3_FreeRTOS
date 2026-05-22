@@ -35,8 +35,9 @@ void task_c(void *pvParameters)
     led_command_t command;
 
     while (1) {
+        QueueHandle_t queue = (QueueHandle_t)pvParameters;
         // Bloquearse esperando un comando en la cola (sin timeout)
-        if (xQueueReceive(led_queue, &command, portMAX_DELAY) == pdTRUE) {
+        if (xQueueReceive(queue, &command, portMAX_DELAY) == pdTRUE) {
 
             // Asignar memoria dinámica para el color
             rgb_color_t *color = (rgb_color_t *) pvPortMalloc(sizeof(rgb_color_t));

@@ -3,7 +3,7 @@
   "clangd.arguments": [
     "--background-index",
     "--query-driver=**",
-    "--compile-commands-dir=c:\\Users\\nicom\\OneDrive\\Escritorio\\Codigos_placa\\lab3\\lab3v2\\la3freeRTOS\\Laboratorio_3_FreeRTOS\\build"
+    "--compile-commands-dir=c:\\IOT\\Laboratorio_3_FreeRTOS\\build"
   ],
   "idf.currentSetup": "C:\\esp\\v6.0\\esp-idf",
   "idf.openOcdConfigs": [
@@ -11,5 +11,6 @@
   ],
   "idf.customExtraVars": {
     "IDF_TARGET": "esp32s2"
-  }
+  },
+  "idf.portWin": "COM8"
 }

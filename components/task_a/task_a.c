@@ -44,7 +44,7 @@ void task_a(void *pvParameters)
 
         cycle_counter++;
 
-        if (cycle_counter >= 20) {//si esto prende la led 500ms y apaga 500ms ,en 20 ciclos se muestra entonces cada 20 segundos MINIMO (si no hubieran interrupciones y otros eventos).
+        if (cycle_counter >= 60) {//si esto prende la led 500ms y apaga 500ms ,en 20 ciclos se muestra entonces cada 20 segundos MINIMO (si no hubieran interrupciones y otros eventos).
             cycle_counter = 0;
 
             UBaseType_t stack_free = uxTaskGetStackHighWaterMark(NULL);

@@ -33,11 +33,6 @@ void app_main(void)
         return;
     }
 
-    // Verificar que la memoria de la cola se asignó correctamente
-    if (led_queue == NULL) {
-        ESP_LOGE(MAIN_TAG, "Error crítico: No se pudo crear la cola de comandos.");
-        return; 
-    }
      /*
      * Color inicial.
      * TASK A va a parpadear inicialmente en rojo.
@@ -95,7 +90,7 @@ void app_main(void)
     task_created = xTaskCreate(
         task_a,
         "task_a",
-        4096,
+        800,//usa 628 segun sale 
         NULL,
         tskIDLE_PRIORITY + 1,
         NULL
@@ -109,11 +104,11 @@ void app_main(void)
 
     // Crea TASK B (Terminal UART) pasando el handle de la cola como parámetro (último argumento)
     task_created = xTaskCreate(
-        echo_task,
+        task_b,
         "uart_echo_task",
         4096,
         (void *)led_queue,
-        10,
+        tskIDLE_PRIORITY + 3,
         NULL
     );
 
@@ -128,7 +123,7 @@ void app_main(void)
         "led_task",
         4096,
         (void *)led_queue,
-        10,
+        tskIDLE_PRIORITY + 2,
         NULL
     );
 
