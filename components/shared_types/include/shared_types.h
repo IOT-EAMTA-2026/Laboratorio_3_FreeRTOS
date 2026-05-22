@@ -4,7 +4,14 @@
 #include <stdint.h>
 
 #include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 #include "freertos/semphr.h"
+
+/*
+ * Largo de la cola de comandos.
+ * Este mismo valor se usa como cantidad maxima de timers pendientes.
+ */
+#define QUEUE_LENGTH 10
 
 /*
  * Color del LED RGB.
@@ -17,13 +24,6 @@ typedef struct {
 
 /*
  * Comando recibido por UART.
- *
- * color: color final deseado.
- * delay_s: tiempo en segundos.
- *
- * En esta versión extendida:
- * - delay_s se usa como espera antes de iniciar el cambio.
- * - También se usa como duración de la transición gradual.
  */
 typedef struct {
     rgb_color_t color;
@@ -32,8 +32,6 @@ typedef struct {
 
 /*
  * Color actual compartido.
- * TASK A lo lee.
- * TASK C y la tarea de transición lo modifican.
  */
 extern rgb_color_t g_current_color;
 
@@ -43,12 +41,14 @@ extern rgb_color_t g_current_color;
 extern SemaphoreHandle_t g_color_mutex;
 
 /*
+ * Cola compartida entre TASK B y TASK C.
+ */
+extern QueueHandle_t led_queue;
+
+/*
  * Cantidad de timers pendientes.
- * Se usa para responder al comando STATUS.
+ * Se usa para responder al comando STATUS (opcional)
  */
 extern volatile uint32_t g_pending_timers;
-
-/**cola**/
-extern QueueHandle_t led_queue;
 
 #endif

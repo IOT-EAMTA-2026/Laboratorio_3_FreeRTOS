@@ -18,8 +18,6 @@
 
 static const char *MAIN_TAG = "MAIN_APP";
 
-#define QUEUE_LENGTH 10
-
 // --- CONFIGURACIÓN PRINCIPAL ---
 void app_main(void)
 {
@@ -105,7 +103,7 @@ void app_main(void)
     task_created = xTaskCreate(
         task_b  ,
         "task_b",
-        4096,
+        2100,
         (void *)led_queue,
         tskIDLE_PRIORITY + 3,
         NULL
@@ -120,7 +118,7 @@ void app_main(void)
     task_created = xTaskCreate(
         task_c,
         "led_task",
-        4096,
+        1050,
         (void *)led_queue,
         tskIDLE_PRIORITY + 2,
         NULL

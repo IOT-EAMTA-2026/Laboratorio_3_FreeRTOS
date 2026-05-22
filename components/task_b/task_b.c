@@ -1,26 +1,56 @@
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdbool.h> 
+#include <stdbool.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
+#include "freertos/semphr.h"
+
 #include "driver/uart.h"
-#include "driver/gpio.h"
-#include <stdio.h>
-#include "sdkconfig.h"
 #include "esp_log.h"
+
 #include "shared_types.h"
 #include "task_b.h"
 
-// --- CONFIGURACIONES ---
 #define ECHO_UART_PORT_NUM      UART_NUM_0
 #define ECHO_UART_BAUD_RATE     115200
 #define BUF_SIZE                1024
 
+#define QUEUE_SEND_TIMEOUT_MS   100
+
 static const char *TAG = "UART_terminal";
 
-void task_b(void *arg)
+static void send_status(void)
 {
+    rgb_color_t local_color = {0};
+
+    if (xSemaphoreTake(g_color_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+        local_color = g_current_color;
+        xSemaphoreGive(g_color_mutex);
+
+        char status_msg[64];
+
+        snprintf(
+            status_msg,
+            sizeof(status_msg),
+            "STATUS: R=%u G=%u B=%u | timers pendientes=%lu\r\n",
+            local_color.r,
+            local_color.g,
+            local_color.b,
+            (unsigned long)g_pending_timers
+        );
+
+        uart_write_bytes(UART_NUM_0, status_msg, strlen(status_msg));
+        ESP_LOGI(TAG, "%s", status_msg);
+    } else {
+        ESP_LOGW(TAG, "No se pudo tomar el mutex para STATUS");
+    }
+}
+
+void task_b(void *arg){
+
     QueueHandle_t led_cmd_queue = (QueueHandle_t)arg;
 
     if (led_cmd_queue == NULL) {
@@ -51,6 +81,7 @@ void task_b(void *arg)
     uint8_t line_buffer[BUF_SIZE];
     int line_index = 0;
     led_command_t led_cmd;
+    uint32_t cycle_counter = 0;
 
     ESP_LOGI(TAG, "Terminal lista. Escribe un COLOR<espacio>SEGUNDOS y presiona ENTER...");
     while (1) {
@@ -64,17 +95,42 @@ void task_b(void *arg)
             // Al presionar ENTER (detectamos fin de línea)
             if (byte_recibido == '\n' || byte_recibido == '\r') {
                 if (line_index > 0) { 
-                    line_buffer[line_index] = '\0'; // Terminamos el string de forma segura
+                    line_buffer[line_index] = '\0'; // Termina el string de forma segura
                     
                     ESP_LOGI(TAG, "Línea completa recibida: %s. Procesando...", (char *)line_buffer);
 
+                    cycle_counter++;
+
+                    if (cycle_counter >= 5) {
+                        cycle_counter = 0;
+
+                        ESP_LOGI(
+                            TAG,
+                            "Stack minimo libre TASK B: %u words",
+                            (unsigned int)uxTaskGetStackHighWaterMark(NULL)
+                        );
+                    }
+
+                        // --- PARSEO INMEDIATO DIRECTO EN LA TAREA ---
+                    memset(&led_cmd, 0, sizeof(led_command_t));
+
                     // --- PARSEO INMEDIATO DIRECTO EN LA TAREA ---
-                    memset(&led_cmd, 0, sizeof(led_command_t)); // Limpiamos estructura
+                    memset(&led_cmd, 0, sizeof(led_command_t)); // Limpia estructura
+
+                     /*
+                     * STATUS no se encola porque no implica cambiar el color
+                     * luego de un delay. Solo consulta el estado actual.
+                     */
+                    if (strcmp((char *)line_buffer, "STATUS") == 0) {
+                        send_status();
+                        line_index = 0;
+                        continue;
+                    }
 
                     int espacio_idx = -1;
                     for (int i = 0; i < line_index; i++) {
                         if (line_buffer[i] == ' ') {
-                            line_buffer[i] = '\0'; // Dividimos el string en dos partes
+                            line_buffer[i] = '\0'; // Divide el string en dos partes
                             espacio_idx = i;
                             break;
                         }
@@ -146,11 +202,11 @@ void task_b(void *arg)
                         ESP_LOGI(TAG, "Comando Listo -> R:%d G:%d B:%d | Delay: %d s", 
                                  led_cmd.color.r, led_cmd.color.g, led_cmd.color.b, led_cmd.delay_s);
 
-                        // Enviamos la estructura directo a la cola global de hardware
+                        // Envia la estructura directo a la cola global de hardware
                         xQueueSend(led_queue, &led_cmd, portMAX_DELAY);
                     }
 
-                    // Reiniciamos el índice del búfer para la próxima línea
+                    // Reinicia el índice del búfer para la próxima línea
                     line_index = 0; 
                 }
             } 
@@ -159,4 +215,4 @@ void task_b(void *arg)
             }
         }
     }
-}
+    }
