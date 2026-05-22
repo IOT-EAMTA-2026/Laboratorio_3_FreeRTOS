@@ -16,7 +16,6 @@
  * ESP_LOGE = error importante.
 */
 
-
 static const char *MAIN_TAG = "MAIN_APP";
 
 #define QUEUE_LENGTH 10
@@ -104,13 +103,13 @@ void app_main(void)
 
     // Crea TASK B (Terminal UART) pasando el handle de la cola como parámetro (último argumento)
     task_created = xTaskCreate(
-        task_b,
-        "uart_echo_task",
+        task_b  ,
+        "task_b",
         4096,
         (void *)led_queue,
         tskIDLE_PRIORITY + 3,
         NULL
-    );
+    );  
 
     if (task_created != pdPASS) {
         ESP_LOGE(MAIN_TAG, "No se pudo crear TASK B");

@@ -147,7 +147,7 @@ void task_b(void *arg)
                                  led_cmd.color.r, led_cmd.color.g, led_cmd.color.b, led_cmd.delay_s);
 
                         // Enviamos la estructura directo a la cola global de hardware
-                        xQueueSend(led_cmd_queue, &led_cmd, portMAX_DELAY);
+                        xQueueSend(led_queue, &led_cmd, portMAX_DELAY);
                     }
 
                     // Reiniciamos el índice del búfer para la próxima línea
