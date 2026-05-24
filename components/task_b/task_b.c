@@ -89,11 +89,11 @@ void task_b(void *arg)
                         ESP_LOGW(TAG, "Color desconocido: %s", color_str);
                         color_valido = false;
                     }
-                    if (strcmp(color_str, "STATUS") == 0) { //(Opcional)
-                        ESP_LOGW(TAG, "Comando STATUS recibido. Ignorando el comando de LED y mostrando estado actual...");
-                    }else{
-                        valor_anterior = dato_recibido;
-                    }
+                    //if (strcmp(color_str, "STATUS") == 0) { //(Opcional)
+                    //    ESP_LOGW(TAG, "Comando STATUS recibido. Ignorando el comando de LED y mostrando estado actual...");
+                    //}else{
+                    //    valor_anterior = dato_recibido;
+                    //}
                     
                     if (color_valido && espacio_idx != -1) {
                         // El número está justo tras el espacio convertido en '\0'
@@ -125,4 +125,3 @@ void task_b(void *arg)
             }
         }
     }
-}
