@@ -14,9 +14,16 @@
 #include "shared_types.h"
 #include "task_b.h"
 
-#define ECHO_UART_PORT_NUM      UART_NUM_0
-#define ECHO_UART_BAUD_RATE     115200
-#define BUF_SIZE                1024
+// --- CONFIGURACIONES UART ---
+#define ECHO_UART_PORT_NUM      (0)         // Usamos el UART0
+#define ECHO_UART_BAUD_RATE     (115200)    // Velocidad estándar
+#define ECHO_TASK_STACK_SIZE    (3072)      // Memoria para la tarea
+#define BUF_SIZE                (128)      // Tamaño del buffer de lectura
+
+// --- CONFIGURACIÓN DE PINES ---
+#define ECHO_TEST_TXD           (43) 
+#define ECHO_TEST_RXD           (44)
+
 
 #define QUEUE_SEND_TIMEOUT_MS   100
 
@@ -59,23 +66,23 @@ void task_b(void *arg){
     }
 
     uart_config_t uart_config = {
-        .baud_rate = ECHO_UART_BAUD_RATE,
-        .data_bits = UART_DATA_8_BITS,
-        .parity    = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-        .source_clk = UART_SCLK_DEFAULT,
+        .baud_rate = ECHO_UART_BAUD_RATE, //velocidad de la comunicación
+        .data_bits = UART_DATA_8_BITS,    //tamaño del paquete de datos.
+        .parity    = UART_PARITY_DISABLE, //El bit de paridad (Chequeo de errores).
+        .stop_bits = UART_STOP_BITS_1,    //Número de bits de parada.
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE, //Control de flujo por hardware (RTS/CTS).
+        .source_clk = UART_SCLK_DEFAULT,      //Reloj fuente para el UART.
     };
 
     ESP_ERROR_CHECK(uart_driver_install(ECHO_UART_PORT_NUM, BUF_SIZE * 2, 0, 0, NULL, 0));
     ESP_ERROR_CHECK(uart_param_config(ECHO_UART_PORT_NUM, &uart_config));
 
     ESP_ERROR_CHECK(uart_set_pin(
-        ECHO_UART_PORT_NUM,
-        UART_PIN_NO_CHANGE,
-        UART_PIN_NO_CHANGE,
-        UART_PIN_NO_CHANGE,
-        UART_PIN_NO_CHANGE
+        ECHO_UART_PORT_NUM,   // Número del puerto UART a configurar (44 RX y 43 TX en ESP32)
+        ECHO_TEST_TXD,  // Cambiar el pin TX  (usamos el pin 43)
+        ECHO_TEST_RXD,  // Cambiar el pin RX  (usamos el pin 44)
+        UART_PIN_NO_CHANGE, // No cambiar el pin RTS (Request to Send)
+        UART_PIN_NO_CHANGE  // No cambiar el pin CTS (Clear to Send)
     ));
 
     uint8_t line_buffer[BUF_SIZE];
