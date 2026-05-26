@@ -34,7 +34,7 @@ void app_main(void)
      * Color inicial.
      * TASK A va a parpadear inicialmente en rojo.
      */
-    g_current_color.r = 255;
+    g_current_color.r = 0;
     g_current_color.g = 0;
     g_current_color.b = 0;
 

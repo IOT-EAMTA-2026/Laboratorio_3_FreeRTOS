@@ -17,12 +17,12 @@
 // --- CONFIGURACIONES UART ---
 #define ECHO_UART_PORT_NUM      (0)         // Usamos el UART0
 #define ECHO_UART_BAUD_RATE     (115200)    // Velocidad estándar
-#define ECHO_TASK_STACK_SIZE    (3072)      // Memoria para la tarea
 #define BUF_SIZE                (128)      // Tamaño del buffer de lectura
+//#define ECHO_TASK_STACK_SIZE    (3072)    // Memoria para el stack de la tarea definida en app_main
 
 // --- CONFIGURACIÓN DE PINES ---
-#define ECHO_TEST_TXD           (43) 
-#define ECHO_TEST_RXD           (44)
+#define ECHO_TEST_TXD           (43)       // Cambiar el pin TX (UART0)
+#define ECHO_TEST_RXD           (44)       // Cambiar el pin RX (UART0)
 
 
 #define QUEUE_SEND_TIMEOUT_MS   100
@@ -39,7 +39,7 @@ static void send_status(void)
 
         char status_msg[64];
 
-        snprintf(
+        snprintf(    //Guardar de forma segura en un espacio de memoria (un buffer)
             status_msg,
             sizeof(status_msg),
             "STATUS: R=%u G=%u B=%u | timers pendientes=%lu\r\n",
@@ -49,16 +49,18 @@ static void send_status(void)
             (unsigned long)g_pending_timers
         );
 
-        uart_write_bytes(UART_NUM_0, status_msg, strlen(status_msg));
-        ESP_LOGI(TAG, "%s", status_msg);
+        uart_write_bytes(UART_NUM_0, status_msg, strlen(status_msg)); // Enviar el mensaje de estado por UART
+        //ESP_LOGI(TAG, "%s", status_msg); Prueba de imprimir el status también en el log
     } else {
         ESP_LOGW(TAG, "No se pudo tomar el mutex para STATUS");
     }
 }
 
+
+
 void task_b(void *arg){
 
-    QueueHandle_t led_cmd_queue = (QueueHandle_t)arg;
+    QueueHandle_t led_cmd_queue = (QueueHandle_t)arg; // Recibimos la cola de comandos como argumento
 
     if (led_cmd_queue == NULL) {
         ESP_LOGE(TAG, "No se recibio la cola de comandos");
@@ -85,10 +87,10 @@ void task_b(void *arg){
         UART_PIN_NO_CHANGE  // No cambiar el pin CTS (Clear to Send)
     ));
 
-    uint8_t line_buffer[BUF_SIZE];
-    int line_index = 0;
-    led_command_t led_cmd;
-    uint32_t cycle_counter = 0;
+    uint8_t line_buffer[BUF_SIZE]; // Buffer para almacenar la línea de comando recibida
+    int line_index = 0;            // Índice para rastrear la posición en el buffer de la línea
+    led_command_t led_cmd;         // Variable para almacenar el comando de LED parseado
+    uint32_t cycle_counter = 0;    // Contador para monitorear el uso de la pila
 
     ESP_LOGI(TAG, "Terminal lista. Escribe un COLOR<espacio>SEGUNDOS y presiona ENTER...");
     while (1) {
@@ -114,16 +116,12 @@ void task_b(void *arg){
                         ESP_LOGI(
                             TAG,
                             "Stack minimo libre TASK B: %u words",
-                            (unsigned int)uxTaskGetStackHighWaterMark(NULL)
+                            (unsigned int)uxTaskGetStackHighWaterMark(NULL) //El mínimo de memoria libre que tuvo la tarea desde que empezó a ejecutarse
                         );
                     }
 
                         // --- PARSEO INMEDIATO DIRECTO EN LA TAREA ---
-                    memset(&led_cmd, 0, sizeof(led_command_t));
-
-                    // --- PARSEO INMEDIATO DIRECTO EN LA TAREA ---
-                    memset(&led_cmd, 0, sizeof(led_command_t)); // Limpia estructura
-
+                    memset(&led_cmd, 0, sizeof(led_command_t));  // Reiniciar la estructura del comando antes de llenarla
                      /*
                      * STATUS no se encola porque no implica cambiar el color
                      * luego de un delay. Solo consulta el estado actual.
@@ -146,7 +144,7 @@ void task_b(void *arg){
                     char *color_str = (char *)line_buffer;
                     bool color_valido = true;
 
-                    if (strcmp(color_str, "ROJO") == 0) {
+                    if (strcmp(color_str, "ROJO") == 0) {   //strcmp es para comparar strings, devuelve 0 si son iguales
                         led_cmd.color.r = 255;
                         led_cmd.color.g = 0;
                         led_cmd.color.b = 0;
@@ -203,22 +201,24 @@ void task_b(void *arg){
 
                     if (color_valido && espacio_idx != -1) {
                         // El número está justo tras el espacio convertido en '\0'
-                        int delay_s = atoi((char *)(line_buffer + espacio_idx + 1));
+                        int delay_s = atoi((char *)(line_buffer + espacio_idx + 1)); //Significa ASCII to Integer
                         led_cmd.delay_s = delay_s;
 
                         ESP_LOGI(TAG, "Comando Listo -> R:%d G:%d B:%d | Delay: %d s", 
                                  led_cmd.color.r, led_cmd.color.g, led_cmd.color.b, led_cmd.delay_s);
 
-                        // Envia la estructura directo a la cola global de hardware
-                        xQueueSend(led_queue, &led_cmd, portMAX_DELAY);
+                        if (xQueueSend( led_queue, &led_cmd, pdMS_TO_TICKS(100) == pdTRUE)) { // Enviar el comando a la cola con un timeout de 100 ms
+                            ESP_LOGI(TAG, "Comando enviado a la cola correctamente");
+                        } else {
+                            ESP_LOGW(TAG, "No se pudo enviar el comando: cola llena");
+                        }
                     }
-
                     // Reinicia el índice del búfer para la próxima línea
                     line_index = 0; 
                 }
             } 
-            else if (line_index < (BUF_SIZE - 1)) {
-                line_buffer[line_index++] = byte_recibido;
+            else if (line_index < (BUF_SIZE - 1)) {      //"Cinta transportadora" que va recolectando tu comando letra por letr
+                line_buffer[line_index++] = byte_recibido;   
             }
         }
     }
