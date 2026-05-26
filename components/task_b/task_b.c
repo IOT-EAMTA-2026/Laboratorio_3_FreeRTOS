@@ -81,8 +81,8 @@ void task_b(void *arg){
 
     ESP_ERROR_CHECK(uart_set_pin(
         ECHO_UART_PORT_NUM,   // Número del puerto UART a configurar (44 RX y 43 TX en ESP32)
-        ECHO_TEST_TXD,  // Cambiar el pin TX  (usamos el pin 43)
-        ECHO_TEST_RXD,  // Cambiar el pin RX  (usamos el pin 44)
+        ECHO_TEST_TXD,       // Cambiar el pin TX  (usamos el pin 43)
+        ECHO_TEST_RXD,       // Cambiar el pin RX  (usamos el pin 44)
         UART_PIN_NO_CHANGE, // No cambiar el pin RTS (Request to Send)
         UART_PIN_NO_CHANGE  // No cambiar el pin CTS (Clear to Send)
     ));
