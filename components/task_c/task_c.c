@@ -202,10 +202,6 @@ void task_c(void *pvParameters)
             // Calcular el periodo del timer.
             TickType_t period = pdMS_TO_TICKS(command.delay_s * 1000);
 
-            if (period == 0) {
-                period = 1;
-            }
-
             // Crear el timer one-shot con pvTimerID apuntando al color.
             TimerHandle_t timer = xTimerCreate(
                 "led_timer",

@@ -76,7 +76,14 @@ void task_b(void *arg){
         .source_clk = UART_SCLK_DEFAULT,      //Reloj fuente para el UART.
     };
 
-    ESP_ERROR_CHECK(uart_driver_install(ECHO_UART_PORT_NUM, BUF_SIZE * 2, 0, 0, NULL, 0));
+    ESP_ERROR_CHECK(uart_driver_install(
+    ECHO_UART_PORT_NUM,       // Puerto UART a usar (ej: UART_NUM_1, UART_NUM_2)
+    BUF_SIZE * 2,       // Tamaño del buffer de RECEPCIÓN (RX) en bytes
+    0,                  // Tamaño del buffer de TRANSMISIÓN (TX) — 0 = sin buffer, usa modo bloqueante
+    0,                      // Tamaño de la cola de eventos — 0 = sin cola de eventos
+    NULL,                   // Puntero a la cola de eventos — NULL porque no usamos cola
+    0                 // Flags de interrupción (ESP_INTR_FLAG_*) — 0 = configuración por defecto
+));  
     ESP_ERROR_CHECK(uart_param_config(ECHO_UART_PORT_NUM, &uart_config));
 
     ESP_ERROR_CHECK(uart_set_pin(
@@ -131,8 +138,8 @@ void task_b(void *arg){
                         line_index = 0;
                         continue;
                     }
-
-                    int espacio_idx = -1;
+                                                            //Variable para almacenar la posición del espacio que separa el color del número de segundos}           
+                    int espacio_idx = -1;                   //Se usa como flag para verificar si se encontró un espacio en la línea de comando. Si sigue siendo -1 después del bucle, significa que no se encontró un espacio, lo que indicaría un formato de comando incorrecto.
                     for (int i = 0; i < line_index; i++) {
                         if (line_buffer[i] == ' ') {
                             line_buffer[i] = '\0'; // Divide el string en dos partes
@@ -140,6 +147,7 @@ void task_b(void *arg){
                             break;
                         }
                     }
+
 
                     char *color_str = (char *)line_buffer;
                     bool color_valido = true;
@@ -199,7 +207,7 @@ void task_b(void *arg){
                         color_valido = false;
                     }
 
-                    if (color_valido && espacio_idx != -1) {
+                    if (color_valido && espacio_idx != -1 && atoi((char *)(line_buffer + espacio_idx + 1)) >= 1) {
                         // El número está justo tras el espacio convertido en '\0'
                         int delay_s = atoi((char *)(line_buffer + espacio_idx + 1)); //Significa ASCII to Integer
                         led_cmd.delay_s = delay_s;
